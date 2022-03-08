@@ -1,5 +1,7 @@
 package com.spring.security.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -7,6 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 /**
@@ -14,23 +17,33 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
  * dependency as part of pom.xml due to that using spring security generated password and username as
  * user we can access endpoint with Basic Authentication.
  */
+
+/**
+ * If we don't configure and provide PasswordEncoder even Basic Authentication will also not work.
+ * Application will up normally but when we hit any endpoint we will run into exception.
+ */
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    /**
+     * Till now we have customized userdetailsService and PasswordEncoder for our application.
+     */
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         InMemoryUserDetailsManager userDetailsService = new InMemoryUserDetailsManager();
-        UserDetails user = User.withUsername("Deepak").password(bCryptPasswordEncoder.encode("Deepak")).authorities("read").build();
+        UserDetails user = User.withUsername("Deepak").password(passwordEncoder.encode("Deepak")).authorities("read").build();
         userDetailsService.createUser(user);
-
-        auth.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder);
-
-    }
+        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
+        }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
        http.httpBasic();
        http.authorizeRequests().anyRequest().authenticated();
     }
+
+
 }
