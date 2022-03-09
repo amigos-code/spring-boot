@@ -10,4 +10,9 @@ public class SpringSecurityController {
 public String get(){
     return "hello";
 }
+
+@GetMapping("/bye")
+public String bye(){
+        return "Bye from Boot";
+}
 }
